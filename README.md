@@ -2,8 +2,6 @@
 
 A modern, full-featured event management and ticketing platform built for Kenya's vibrant event scene. Experience seamless event discovery, secure ticket purchasing, and comprehensive admin management.
 
-![SparkVybzEnt](https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=400&fit=crop)
-
 ## ✨ Features
 
 ### 🎫 **For Event Attendees**
@@ -138,5 +136,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Colors**: Inspired by Kenya's vibrant culture
 
 ---
-
-**Built with ❤️ for Kenya's event community**

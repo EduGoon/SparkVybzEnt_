@@ -16,11 +16,16 @@ const SignInPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+
     const success = await login(email, password);
     if (success) {
-      // Redirect based on user role
-      const user = JSON.parse(localStorage.getItem('sparkvybzent_user') || '{}');
-      if (user.role === 'admin') {
+      const storedUser = localStorage.getItem('sparkvybzent_user');
+      const userObj = storedUser ? JSON.parse(storedUser) : null;
+      if (userObj && (userObj.role === 'ADMIN' || userObj.role === 'admin')) {
         navigate('/admin');
       } else {
         navigate(from, { replace: true });

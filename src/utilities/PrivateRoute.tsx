@@ -11,10 +11,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, adminOnly = false
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  // For demo purposes, allow access to account and admin pages without authentication
-  const isDemoRoute = location.pathname === '/account' || location.pathname.startsWith('/admin');
-
-  if (isLoading && !isDemoRoute) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -25,12 +22,12 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, adminOnly = false
     );
   }
 
-  if (!user && !isDemoRoute) {
+  if (!user) {
     // Redirect to sign in, but remember where they wanted to go
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && user?.role !== 'admin' && !isDemoRoute) {
+  if (adminOnly && user.role !== 'ADMIN') {
     // If trying to access admin area but not admin, redirect to home
     return <Navigate to="/" replace />;
   }

@@ -7,10 +7,11 @@ const SignUpPage: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: ''
   });
   const [error, setError] = useState('');
-  const { login, isLoading } = useAuth();
+  const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,19 +25,37 @@ const SignUpPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    const { name, email, password, confirmPassword } = formData;
+    if (!name || !email || !password || !confirmPassword || !formData.phone) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    // Mock registration - in real app, this would create account
-    // For demo, we'll just log them in as a regular user
-    const success = await login(formData.email, formData.password);
+    const [firstName, ...lastParts] = name.trim().split(' ');
+    const lastName = lastParts.join(' ') || '';
+
+    const success = await signup({
+      email,
+      password,
+      firstName,
+      lastName,
+      phone: formData.phone,
+    });
+
     if (success) {
       navigate('/');
     } else {
-      // Since it's mock, if login fails, assume registration successful and redirect
-      navigate('/');
+      setError('Failed to create account');
     }
   };
 
@@ -78,6 +97,21 @@ const SignUpPage: React.FC = () => {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Enter your email"
+            />
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g. 1234567890"
             />
           </div>
 

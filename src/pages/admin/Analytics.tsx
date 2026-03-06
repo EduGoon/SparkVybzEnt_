@@ -1,26 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import * as adminService from '../../services/adminService';
+import { Analytics as AnalyticsType } from '../../utilities/types';
 
 const Analytics: React.FC = () => {
-  const mockStats = {
-    totalEvents: 24,
-    totalTickets: 1247,
-    totalRevenue: 2500000,
-    averageTicketPrice: 2005,
-    topEvents: [
-      { name: 'Nairobi Music Festival', tickets: 450, revenue: 1125000 },
-      { name: 'Tech Conference Nairobi', tickets: 320, revenue: 1600000 },
-      { name: 'Comedy Night', tickets: 280, revenue: 420000 },
-      { name: 'Art Exhibition', tickets: 197, revenue: 98500 }
-    ],
-    monthlyData: [
-      { month: 'Jan', tickets: 120, revenue: 240000 },
-      { month: 'Feb', tickets: 150, revenue: 300000 },
-      { month: 'Mar', tickets: 180, revenue: 360000 },
-      { month: 'Apr', tickets: 200, revenue: 400000 },
-      { month: 'May', tickets: 220, revenue: 440000 },
-      { month: 'Jun', tickets: 250, revenue: 500000 }
-    ]
-  };
+  const [stats, setStats] = useState<AnalyticsType | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await adminService.getAnalytics();
+        setStats(res);
+      } catch (err) {
+        console.error('Failed to load analytics', err);
+      }
+    };
+    load();
+  }, []);
+
+  if (!stats) {
+    return <div className="min-h-screen flex items-center justify-center">Loading analytics...</div>;
+  }
 
   return (
     <div>
@@ -30,19 +29,19 @@ const Analytics: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Events</h3>
-          <p className="text-3xl font-bold text-gray-900">{mockStats.totalEvents}</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.totalEvents}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Tickets Sold</h3>
-          <p className="text-3xl font-bold text-blue-600">{mockStats.totalTickets.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-blue-600">{stats.totalTicketsSold.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Revenue</h3>
-          <p className="text-3xl font-bold text-green-600">KSH {mockStats.totalRevenue.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-green-600">KSH {stats.totalRevenue.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Avg Ticket Price</h3>
-          <p className="text-3xl font-bold text-yellow-600">KSH {mockStats.averageTicketPrice.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-yellow-600">KSH {Math.round(stats.totalRevenue / Math.max(stats.totalTicketsSold, 1)).toLocaleString()}</p>
         </div>
       </div>
 
@@ -52,11 +51,11 @@ const Analytics: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Monthly Revenue</h3>
           <div className="h-64 flex items-end justify-between space-x-2">
-            {mockStats.monthlyData.map((data, index) => (
+            {stats.monthlyRevenue.map((data) => (
               <div key={data.month} className="flex-1 flex flex-col items-center">
                 <div
                   className="bg-green-500 w-full rounded-t"
-                  style={{ height: `${(data.revenue / 500000) * 200}px` }}
+                  style={{ height: `${Math.min(200, (data.revenue / (stats.totalRevenue || 1)) * 200)}px` }}
                 ></div>
                 <span className="text-xs text-gray-500 mt-2">{data.month}</span>
                 <span className="text-xs text-gray-700">KSH {(data.revenue / 1000).toFixed(0)}K</span>
@@ -69,14 +68,14 @@ const Analytics: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Monthly Tickets Sold</h3>
           <div className="h-64 flex items-end justify-between space-x-2">
-            {mockStats.monthlyData.map((data, index) => (
+            {stats.monthlyRevenue.map((data) => (
               <div key={data.month} className="flex-1 flex flex-col items-center">
                 <div
                   className="bg-blue-500 w-full rounded-t"
-                  style={{ height: `${(data.tickets / 250) * 200}px` }}
+                  style={{ height: `${Math.min(200, (data.revenue / (stats.totalRevenue || 1)) * 200)}px` }}
                 ></div>
                 <span className="text-xs text-gray-500 mt-2">{data.month}</span>
-                <span className="text-xs text-gray-700">{data.tickets}</span>
+                <span className="text-xs text-gray-700">{Math.round((data.revenue / (stats.totalRevenue || 1)) * 100)}%</span>
               </div>
             ))}
           </div>
@@ -99,7 +98,7 @@ const Analytics: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {mockStats.topEvents.map((event, index) => (
+              {stats.topEvents?.map((event) => (
                 <tr key={event.name}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {event.name}

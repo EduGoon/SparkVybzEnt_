@@ -1,57 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Event, TicketType } from '../../utilities/types';
+import * as eventService from '../../services/eventService';
 
-interface Event {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  category: string;
-  description: string;
-  status: 'draft' | 'published' | 'cancelled';
-  ticketTypes: { type: string; price: number; quantity: number }[];
+interface LocalEventForm extends Omit<Partial<Event>, 'ticketTypes'> {
+  ticketTypes?: Array<Partial<TicketType>>;
 }
 
-const mockEvents: Event[] = [
-  {
-    id: 1,
-    title: 'Nairobi Music Festival',
-    date: '2023-12-15',
-    location: 'Nairobi',
-    category: 'Music',
-    description: 'A celebration of Kenyan music',
-    status: 'published',
-    ticketTypes: [
-      { type: 'General', price: 2500, quantity: 500 },
-      { type: 'VIP', price: 5000, quantity: 100 }
-    ]
-  },
-  {
-    id: 2,
-    title: 'Tech Conference',
-    date: '2024-01-20',
-    location: 'Nairobi',
-    category: 'Technology',
-    description: 'Innovation and technology showcase',
-    status: 'draft',
-    ticketTypes: [
-      { type: 'Standard', price: 5000, quantity: 200 }
-    ]
-  }
-];
-
 const EventManagement: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [formData, setFormData] = useState<Partial<Event>>({
+  const [formData, setFormData] = useState<LocalEventForm>({
     title: '',
     date: '',
     location: '',
     category: '',
     description: '',
-    status: 'draft',
-    ticketTypes: [{ type: '', price: 0, quantity: 0 }]
+    status: 'DRAFT',
+    ticketTypes: [{ name: '', price: 0, quantity: 0, sold: 0 }]
   });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const resp = await eventService.listEvents();
+        setEvents(resp.data);
+      } catch (err) {
+        console.error('Failed to load events', err);
+      }
+    };
+    load();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -67,7 +46,7 @@ const EventManagement: React.FC = () => {
   const addTicketType = () => {
     setFormData(prev => ({
       ...prev,
-      ticketTypes: [...(prev.ticketTypes || []), { type: '', price: 0, quantity: 0 }]
+      ticketTypes: [...(prev.ticketTypes || []), { name: '', price: 0, quantity: 0, sold: 0 }]
     }));
   };
 
@@ -78,19 +57,21 @@ const EventManagement: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingEvent) {
-      setEvents(prev => prev.map(ev => ev.id === editingEvent.id ? { ...formData, id: ev.id } as Event : ev));
-    } else {
-      const newEvent: Event = {
-        ...formData,
-        id: Date.now(),
-        ticketTypes: formData.ticketTypes || []
-      } as Event;
-      setEvents(prev => [...prev, newEvent]);
+    try {
+      if (editingEvent) {
+        const updated = await eventService.updateEvent(editingEvent.id, formData as Partial<Event>);
+        setEvents(prev => prev.map(ev => ev.id === updated.id ? updated : ev));
+      } else {
+        const created = await eventService.createEvent(formData as Partial<Event>);
+        setEvents(prev => [...prev, created]);
+      }
+      resetForm();
+    } catch (err) {
+      console.error('Failed to save event', err);
+      alert('Error saving event');
     }
-    resetForm();
   };
 
   const resetForm = () => {
@@ -100,8 +81,8 @@ const EventManagement: React.FC = () => {
       location: '',
       category: '',
       description: '',
-      status: 'draft',
-      ticketTypes: [{ type: '', price: 0, quantity: 0 }]
+      status: 'DRAFT',
+      ticketTypes: [{ name: '', price: 0, quantity: 0, sold: 0 }]
     });
     setEditingEvent(null);
     setShowForm(false);
@@ -113,15 +94,21 @@ const EventManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const deleteEvent = (id: number) => {
-    setEvents(prev => prev.filter(ev => ev.id !== id));
+  const deleteEvent = async (id: string | number) => {
+    try {
+      await eventService.deleteEvent(id.toString());
+      setEvents(prev => prev.filter(ev => ev.id !== id));
+    } catch (err) {
+      console.error('Failed to delete event', err);
+      alert('Error deleting event');
+    }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+    switch (status.toUpperCase()) {
+      case 'PUBLISHED': return 'bg-green-100 text-green-800';
+      case 'DRAFT': return 'bg-yellow-100 text-yellow-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -213,9 +200,9 @@ const EventManagement: React.FC = () => {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+                <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
 
@@ -226,9 +213,9 @@ const EventManagement: React.FC = () => {
                 <div key={index} className="flex gap-4 mb-4 p-4 border border-gray-200 rounded-md">
                   <input
                     type="text"
-                    placeholder="Type (e.g., General)"
-                    value={ticket.type}
-                    onChange={(e) => handleTicketChange(index, 'type', e.target.value)}
+                    placeholder="Name (e.g., General)"
+                    value={(ticket as any).name || ''}
+                    onChange={(e) => handleTicketChange(index, 'name', e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <input

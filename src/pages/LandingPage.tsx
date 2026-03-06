@@ -16,7 +16,7 @@ const LandingPage: React.FC = () => {
             {user ? (
               <>
                 <Link to="/account" className="text-gray-600 hover:text-green-600">My Account</Link>
-                {user.role === 'admin' && (
+                {user.role === 'ADMIN' && (
                   <Link to="/admin" className="text-green-600 hover:text-green-800 font-medium">Admin</Link>
                 )}
                 <button

@@ -1,41 +1,58 @@
+// Types reflecting the backend API contract
+
+export interface TicketType {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  sold: number;
+  description?: string;
+}
+
 export interface Event {
   id: string;
   title: string;
   description: string;
   date: string;
-  time: string;
   location: string;
   category: string;
-  image: string;
-  featured: boolean;
-  status: 'upcoming' | 'ongoing' | 'completed';
-  tickets: Ticket[];
-  organizer: string;
-  capacity: number;
-  soldTickets: number;
+  imageUrl: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED';
+  organizerId: string;
+  createdAt: string;
+  updatedAt: string;
+  ticketTypes: TicketType[];
 }
 
 export interface Ticket {
   id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  description: string;
+  eventId: string;
+  userId: string;
+  ticketTypeId: string;
+  purchaseDate: string;
+  qrCode: string | null;
+  status: 'ACTIVE' | 'USED' | 'REFUNDED';
+  paymentId: string | null;
 }
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  avatar?: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  role: 'USER' | 'ADMIN';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Sponsor {
   id: string;
   name: string;
-  logo: string;
+  logoUrl: string;
   website: string;
-  tier: 'gold' | 'silver' | 'bronze';
+  tier: 'GOLD' | 'SILVER' | 'BRONZE';
+  contactEmail: string;
 }
 
 export interface Analytics {
@@ -44,4 +61,5 @@ export interface Analytics {
   totalRevenue: number;
   eventsByCategory: { [key: string]: number };
   monthlyRevenue: { month: string; revenue: number }[];
+  topEvents?: { name: string; tickets: number; revenue: number }[];
 }

@@ -1,100 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Sponsor } from '../../utilities/types';
+import * as sponsorService from '../../services/sponsorService';
 
-interface Sponsor {
-  id: number;
-  name: string;
-  logo: string;
-  website: string;
-  events: number[];
-  contactEmail: string;
-  description: string;
-}
-
-const mockSponsors: Sponsor[] = [
-  {
-    id: 1,
-    name: 'Safaricom PLC',
-    logo: '/api/placeholder/100/50',
-    website: 'https://safaricom.co.ke',
-    events: [1, 2],
-    contactEmail: 'sponsorship@safaricom.co.ke',
-    description: 'Leading telecommunications company in Kenya'
-  },
-  {
-    id: 2,
-    name: 'Equity Bank',
-    logo: '/api/placeholder/100/50',
-    website: 'https://equitybank.co.ke',
-    events: [1],
-    contactEmail: 'marketing@equitybank.co.ke',
-    description: 'Pan-African financial services provider'
-  },
-  {
-    id: 3,
-    name: 'Nairobi Business Park',
-    logo: '/api/placeholder/100/50',
-    website: 'https://nairobibusinesspark.com',
-    events: [2],
-    contactEmail: 'events@nbp.co.ke',
-    description: 'Premium business and lifestyle destination'
-  }
-];
-
-const mockEvents = [
-  { id: 1, title: 'Nairobi Music Festival' },
-  { id: 2, title: 'Tech Conference Nairobi' }
-];
 
 const SponsorManagement: React.FC = () => {
-  const [sponsors, setSponsors] = useState<Sponsor[]>(mockSponsors);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [formData, setFormData] = useState<Partial<Sponsor>>({
     name: '',
-    logo: '',
+    logoUrl: '',
     website: '',
-    events: [],
-    contactEmail: '',
-    description: ''
+    tier: 'BRONZE',
+    contactEmail: ''
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const resp = await sponsorService.listSponsors();
+        setSponsors(resp.data);
+      } catch (err) {
+        console.error('Failed to load sponsors', err);
+      }
+    };
+    load();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleEventToggle = (eventId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      events: prev.events?.includes(eventId)
-        ? prev.events.filter(id => id !== eventId)
-        : [...(prev.events || []), eventId]
-    }));
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingSponsor) {
-      setSponsors(prev => prev.map(s => s.id === editingSponsor.id ? { ...formData, id: s.id } as Sponsor : s));
-    } else {
-      const newSponsor: Sponsor = {
-        ...formData,
-        id: Date.now(),
-        events: formData.events || []
-      } as Sponsor;
-      setSponsors(prev => [...prev, newSponsor]);
+    try {
+      if (editingSponsor) {
+        const updated = await sponsorService.updateSponsor(editingSponsor.id, formData);
+        setSponsors(prev => prev.map(s => (s.id === updated.id ? updated : s)));
+      } else {
+        const created = await sponsorService.createSponsor(formData);
+        setSponsors(prev => [...prev, created]);
+      }
+      resetForm();
+    } catch (err) {
+      console.error('Failed to save sponsor', err);
+      alert('Error saving sponsor');
     }
-    resetForm();
   };
 
   const resetForm = () => {
     setFormData({
       name: '',
-      logo: '',
+      logoUrl: '',
       website: '',
-      events: [],
-      contactEmail: '',
-      description: ''
+      tier: 'BRONZE',
+      contactEmail: ''
     });
     setEditingSponsor(null);
     setShowForm(false);
@@ -106,13 +68,16 @@ const SponsorManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const deleteSponsor = (id: number) => {
-    setSponsors(prev => prev.filter(s => s.id !== id));
+  const deleteSponsor = async (id: string | number) => {
+    try {
+      await sponsorService.deleteSponsor(id.toString());
+      setSponsors(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error('Failed to delete sponsor', err);
+      alert('Error deleting sponsor');
+    }
   };
 
-  const getEventTitles = (eventIds: number[]) => {
-    return eventIds.map(id => mockEvents.find(e => e.id === id)?.title).filter(Boolean).join(', ');
-  };
 
   return (
     <div>
@@ -164,44 +129,30 @@ const SponsorManagement: React.FC = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tier</label>
+                <select
+                  name="tier"
+                  value={formData.tier}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="GOLD">Gold</option>
+                  <option value="SILVER">Silver</option>
+                  <option value="BRONZE">Bronze</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
                 <input
                   type="url"
-                  name="logo"
-                  value={formData.logo}
+                  name="logoUrl"
+                  value={formData.logoUrl}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
 
-            {/* Associated Events */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Associated Events</label>
-              <div className="space-y-2">
-                {mockEvents.map(event => (
-                  <label key={event.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.events?.includes(event.id) || false}
-                      onChange={() => handleEventToggle(event.id)}
-                      className="mr-2"
-                    />
-                    {event.title}
-                  </label>
-                ))}
-              </div>
-            </div>
 
             <div className="flex gap-4">
               <button
@@ -228,7 +179,7 @@ const SponsorManagement: React.FC = () => {
           <div key={sponsor.id} className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center mb-4">
               <img
-                src={sponsor.logo}
+                src={sponsor.logoUrl}
                 alt={sponsor.name}
                 className="w-16 h-8 object-contain mr-4"
               />
@@ -244,11 +195,9 @@ const SponsorManagement: React.FC = () => {
                 </a>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mb-4">{sponsor.description}</p>
             <div className="mb-4">
-              <p className="text-sm text-gray-500">Events: {getEventTitles(sponsor.events)}</p>
-              <p className="text-sm text-gray-500">Contact: {sponsor.contactEmail}</p>
-            </div>
+                <p className="text-sm text-gray-500">Tier: {sponsor.tier}</p>
+              <p className="text-sm text-gray-500">Contact: {sponsor.contactEmail}</p>            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => editSponsor(sponsor)}

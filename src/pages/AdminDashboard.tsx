@@ -1,17 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../utilities/AuthContext';
 import EventManagement from './admin/EventManagement';
 import SponsorManagement from './admin/SponsorManagement';
 import Analytics from './admin/Analytics';
+import * as adminService from '../services/adminService';
+
+interface Metrics {
+  totalEvents?: number;
+  totalTicketsSold?: number;
+  totalRevenue?: number;
+}
 
 const AdminDashboard: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [metrics, setMetrics] = useState<Metrics>({});
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await adminService.getAnalytics();
+        setMetrics({
+          totalEvents: data.totalEvents,
+          totalTicketsSold: data.totalTicketsSold,
+          totalRevenue: data.totalRevenue,
+        });
+      } catch (e) {
+        console.error('failed to fetch analytics', e);
+      }
+    };
+    load();
+  }, []);
 
   // Demo admin data for presentation
   const demoAdmin = {
-    name: 'Admin Demo',
+    firstName: 'Admin',
+    lastName: 'Demo',
     email: 'admin@sparkvybzent.com'
   };
 
@@ -31,7 +56,7 @@ const AdminDashboard: React.FC = () => {
         <div className="flex justify-between items-center px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-800">SparkVybzEnt Admin</h1>
           <div className="flex items-center space-x-4">
-            <span className="text-gray-600">Welcome, {currentUser.name}</span>
+            <span className="text-gray-600">Welcome, {currentUser.firstName} {currentUser.lastName}</span>
             <Link to="/" className="text-green-600 hover:text-green-800">← Public Site</Link>
             {user && (
               <button
@@ -72,7 +97,7 @@ const AdminDashboard: React.FC = () => {
         {/* Main Content */}
         <main className="flex-1 p-8">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
+            <Route path="/" element={<DashboardHome metrics={metrics} />} />
             <Route path="/events" element={<EventManagement />} />
             <Route path="/sponsors" element={<SponsorManagement />} />
             <Route path="/analytics" element={<Analytics />} />
@@ -83,22 +108,26 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-const DashboardHome: React.FC = () => {
+interface DashboardHomeProps {
+  metrics: Metrics;
+}
+
+const DashboardHome: React.FC<DashboardHomeProps> = ({ metrics }) => {
   return (
     <div>
       <h2 className="text-3xl font-bold text-gray-800 mb-8">Dashboard Overview</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Events</h3>
-          <p className="text-3xl font-bold text-green-600">24</p>
+          <p className="text-3xl font-bold text-green-600">{metrics.totalEvents ?? '-'}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Tickets Sold</h3>
-          <p className="text-3xl font-bold text-blue-600">1,247</p>
+          <p className="text-3xl font-bold text-blue-600">{metrics.totalTicketsSold ?? '-'}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Revenue</h3>
-          <p className="text-3xl font-bold text-yellow-600">KSH 2.5M</p>
+          <p className="text-3xl font-bold text-yellow-600">{metrics.totalRevenue ? `KSH ${metrics.totalRevenue.toLocaleString()}` : '-'}</p>
         </div>
       </div>
     </div>

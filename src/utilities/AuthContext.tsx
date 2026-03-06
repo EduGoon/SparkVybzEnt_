@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-}
+import * as authService from '../services/authService';
+import { registerLogoutCallback } from '../services/api';
+import { User } from './types';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  signup: (payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  }) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -32,52 +35,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for stored user on app load
-    const storedUser = localStorage.getItem('sparkvybzent_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const logout = () => {
+    setUser(null);
+    authService.clearToken();
+    localStorage.removeItem('sparkvybzent_user');
+    // Force redirect to signin when token invalid/expired
+    if (window.location.pathname !== '/signin') {
+      window.location.href = '/signin';
     }
-    setIsLoading(false);
+  };
+
+  // register logout callback so api layer can clear session on 401
+  useEffect(() => {
+    registerLogoutCallback(logout);
+  }, []);
+
+  useEffect(() => {
+    // attempt to restore session if token exists
+    const init = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const me = await authService.getCurrentUser();
+          setUser(me);
+          localStorage.setItem('sparkvybzent_user', JSON.stringify(me));
+        } catch (e) {
+          // token invalid or expired
+          logout();
+        }
+      }
+      setIsLoading(false);
+    };
+    init();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-
-    // Mock authentication logic
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-
-    // Mock users
-    const mockUsers: User[] = [
-      { id: 1, name: 'John Doe', email: 'john@example.com', role: 'user' },
-      { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user' },
-      { id: 3, name: 'Admin User', email: 'admin@sparkvybzent.com', role: 'admin' },
-      { id: 4, name: 'Owner', email: 'owner@sparkvybzent.com', role: 'admin' },
-    ];
-
-    const foundUser = mockUsers.find(u => u.email === email);
-
-    if (foundUser && password === 'password') { // Mock password check
-      setUser(foundUser);
-      localStorage.setItem('sparkvybzent_user', JSON.stringify(foundUser));
-      console.log('User logged in:', foundUser);
-      console.log('Stored in localStorage:', localStorage.getItem('sparkvybzent_user'));
+    try {
+      const resp = await authService.signin({ email, password });
+      authService.storeToken(resp.token);
+      const me = await authService.getCurrentUser();
+      setUser(me);
+      localStorage.setItem('sparkvybzent_user', JSON.stringify(me));
       setIsLoading(false);
       return true;
+    } catch (err) {
+      setIsLoading(false);
+      return false;
     }
-
-    setIsLoading(false);
-    return false;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('sparkvybzent_user');
+  const signup = async (payload: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  }): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      const resp = await authService.signup(payload);
+      authService.storeToken(resp.token);
+      const me = await authService.getCurrentUser();
+      setUser(me);
+      localStorage.setItem('sparkvybzent_user', JSON.stringify(me));
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const value: AuthContextType = {
     user,
     login,
+    signup,
     logout,
     isLoading,
   };
