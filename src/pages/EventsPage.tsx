@@ -49,27 +49,44 @@ const EventsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#fff', fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap');
+        * { box-sizing: border-box; }
+        .gold { color: #f0c040; }
+        .green { color: #22c55e; }
+        .page-title { font-size: 32px; font-family: 'Playfair Display', serif; font-weight: 700; color: #22c55e; margin-bottom: 12px; }
+        .filter-label { font-size: 14px; color: #fff; margin-bottom: 4px; }
+        .filter-select, .filter-input { border-radius: 8px; border: 1px solid #222; padding: 10px 16px; font-size: 15px; background: #111827; color: #fff; font-family: 'DM Sans', sans-serif; }
+        .event-card { background: #111827; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.45); overflow: hidden; transition: box-shadow 0.25s; }
+        .event-card:hover { box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1.5px #22c55e; }
+        .event-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid #222; }
+        .event-title { font-size: 22px; font-family: 'Playfair Display', serif; font-weight: 700; color: #f0c040; margin-bottom: 6px; }
+        .event-venue { font-size: 15px; color: #22c55e; margin-bottom: 2px; }
+        .event-date { font-size: 14px; color: #fff; margin-bottom: 8px; }
+        .event-price { font-size: 16px; color: #22c55e; font-weight: 600; }
+        .view-btn { background:#22c55e; color:#0a0d14; border:none; border-radius:8px; padding:10px 22px; font-size:15px; font-weight:600; cursor:pointer; transition:opacity 0.2s,transform 0.15s; font-family:'DM Sans',sans-serif; margin-left: 8px; }
+        .view-btn:hover { opacity:0.85; transform:translateY(-1px); }
+      `}</style>
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">Events</h1>
-          <nav className="mt-4">
-            <Link to="/" className="text-green-600 hover:text-green-800">Home</Link>
+      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(10,13,20,0.96)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="page-title">Events</span>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link to="/" className="ghost-btn">Home</Link>
           </nav>
         </div>
       </header>
-
       {/* Filters */}
-      <section className="bg-white py-6 border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-4 items-center">
+      <section style={{ background: '#111827', padding: '24px 0', borderBottom: '1px solid #222' }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="filter-label">Category</label>
               <select
                 value={categoryFilter}
                 onChange={(e) => handleCategoryFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="filter-select"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -77,34 +94,32 @@ const EventsPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+              <label className="filter-label">Date From</label>
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => handleDateFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="filter-input"
               />
             </div>
           </div>
         </div>
       </section>
-
       {/* Events Grid */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section style={{ padding: '40px 0' }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
             {filteredEvents.map(event => {
               const firstPrice = event.ticketTypes?.[0]?.price;
               const eventStart = event.startTime ?? event.date;
               const venue = event.venue ?? event.location;
-
               return (
-                <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                  <img src={event.imageUrl} alt={event.title} className="w-full h-48 object-cover" />
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2 text-gray-800">{event.title}</h3>
-                    <p className="text-gray-600 mb-2">{venue}</p>
-                    <p className="text-sm text-gray-500 mb-4">
+                <div key={event.id} className="event-card">
+                  <img src={event.imageUrl} alt={event.title} className="event-img" />
+                  <div style={{ padding: '18px' }}>
+                    <h3 className="event-title">{event.title}</h3>
+                    <p className="event-venue">{venue}</p>
+                    <p className="event-date">
                       {eventStart
                         ? new Date(eventStart).toLocaleString(undefined, {
                             weekday: 'short',
@@ -116,15 +131,15 @@ const EventsPage: React.FC = () => {
                           })
                         : 'Date TBD'}
                     </p>
-                    <div className="flex justify-between items-center">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                       {firstPrice != null && (
-                        <span className="text-green-600 font-semibold">
+                        <span className="event-price">
                           KSH {firstPrice.toLocaleString()} {event.ticketTypes.length > 1 ? 'and up' : ''}
                         </span>
                       )}
                       <Link
                         to={`/events/${event.id}`}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition duration-300"
+                        className="view-btn"
                       >
                         View Details
                       </Link>
@@ -135,8 +150,8 @@ const EventsPage: React.FC = () => {
             })}
           </div>
           {filteredEvents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No events found matching your filters.</p>
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <p style={{ color: '#fff', fontSize: 16 }}>No events found matching your filters.</p>
             </div>
           )}
         </div>

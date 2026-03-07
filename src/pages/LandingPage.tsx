@@ -1,4 +1,5 @@
 import React from 'react';
+import FeaturedEvents from './FeaturedEvents';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../utilities/AuthContext';
 
@@ -6,114 +7,74 @@ const LandingPage: React.FC = () => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen">
+    <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#fff', fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap');
+        * { box-sizing: border-box; }
+        .gold { color: #f0c040; }
+        .green { color: #22c55e; }
+        .hero-title { font-size: 48px; font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1.1; color: #f0c040; margin-bottom: 18px; }
+        .hero-sub { font-size: 20px; color: #fff; font-family: 'DM Sans', sans-serif; margin-bottom: 32px; }
+        .action-btn { background:#22c55e; color:#0a0d14; border:none; border-radius:12px; padding:14px 32px; font-size:17px; font-weight:600; cursor:pointer; transition:opacity 0.2s,transform 0.15s; font-family:'DM Sans',sans-serif; margin-right: 18px; }
+        .action-btn:hover { opacity:0.85; transform:translateY(-1px); }
+        .ghost-btn { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 32px; font-size:17px; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+        .ghost-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+      `}</style>
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-green-600">SparkVybzEnt</h1>
-          <nav className="flex items-center space-x-4">
-            <Link to="/events" className="text-gray-600 hover:text-green-600">Events</Link>
+      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(10,13,20,0.96)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 22, fontWeight: 700, color: '#f0c040', fontFamily: "'Playfair Display', serif", letterSpacing: -0.3 }}>✦ SparkVybzEnt</span>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Link to="/events" className="ghost-btn" style={{ padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>Events</Link>
             {user ? (
               <>
-                <Link to="/account" className="text-gray-600 hover:text-green-600">My Account</Link>
+                <Link to="/account" className="ghost-btn" style={{ padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>My Account</Link>
                 {user.role === 'ADMIN' && (
-                  <Link to="/admin" className="text-green-600 hover:text-green-800 font-medium">Admin</Link>
+                  <Link to="/admin" className="action-btn" style={{ background: '#22c55e', color: '#0a0d14', padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>Admin</Link>
                 )}
-                <button
-                  onClick={logout}
-                  className="text-gray-600 hover:text-red-600"
-                >
-                  Logout
-                </button>
+                <button onClick={logout} className="ghost-btn" style={{ color: '#ef4444', padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>Logout</button>
               </>
             ) : (
               <>
-                <Link to="/signin" className="text-gray-600 hover:text-green-600">Sign In</Link>
-                <Link to="/signup" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">Sign Up</Link>
+                <Link to="/signin" className="ghost-btn" style={{ padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>Sign In</Link>
+                <Link to="/signup" className="action-btn" style={{ padding: '6px 16px', fontSize: '14px', borderRadius: '8px' }}>Sign Up</Link>
               </>
             )}
           </nav>
         </div>
       </header>
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-green-600 to-green-800 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">Welcome to SparkVybzEnt</h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Kenya's premier event management and ticketing platform. Discover amazing events, book tickets, and create unforgettable experiences.
-          </p>
-          <div className="space-x-4">
-            <Link
-              to="/events"
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-3 px-8 rounded-lg transition duration-300"
-            >
-              Browse Events
-            </Link>
-            <Link
-              to="/signup"
-              className="border-2 border-white text-white hover:bg-white hover:text-green-800 font-semibold py-3 px-8 rounded-lg transition duration-300"
-            >
-              Get Started
-            </Link>
+      <section style={{ padding: '48px 0 32px', textAlign: 'center', background: 'linear-gradient(135deg,#1a1f2e,#111827)', position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+          <svg width="100%" height="100%" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#fff" fillOpacity="0.07" d="M0,160L80,149.3C160,139,320,117,480,128C640,139,800,181,960,197.3C1120,213,1280,203,1360,197.3L1440,192L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+          </svg>
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 className="hero-title">SparkVybzEnt</h1>
+          <p className="hero-sub">Kenya's #1 platform for events, tickets, and unforgettable moments.</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 24 }}>
+            <Link to="/events" className="action-btn">Discover Events</Link>
+            {!user && (
+              <Link to="/signup" className="ghost-btn">Get Started</Link>
+            )}
+            {user && (
+              <Link to="/account" className="ghost-btn" style={{ background: '#fff', color: '#22c55e' }}>Go to My Account</Link>
+            )}
           </div>
         </div>
       </section>
-
-      {/* Featured Events */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">Featured Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Mock featured events */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=250&fit=crop" alt="Nairobi Music Festival" className="w-full h-48 object-cover" />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Nairobi Music Festival</h3>
-                <p className="text-gray-600 mb-4">Experience the best of Kenyan music and culture</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-green-600 font-semibold">KSH 2,500</span>
-                  <span className="text-sm text-gray-500">Dec 15, 2023</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop" alt="Tech Conference Nairobi" className="w-full h-48 object-cover" />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Tech Conference Nairobi</h3>
-                <p className="text-gray-600 mb-4">Innovate, Connect, Transform</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-green-600 font-semibold">KSH 5,000</span>
-                  <span className="text-sm text-gray-500">Jan 20, 2024</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop" alt="Comedy Night" className="w-full h-48 object-cover" />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Comedy Night</h3>
-                <p className="text-gray-600 mb-4">Laugh out loud with Kenya's best comedians</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-green-600 font-semibold">KSH 1,500</span>
-                  <span className="text-sm text-gray-500">Nov 30, 2023</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              to="/events"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300"
-            >
-              View All Events
-            </Link>
-          </div>
+      {/* Featured Events Section */}
+      <section style={{ padding: '48px 0', background: '#111827' }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#f0c040', textAlign: 'center', marginBottom: 24, fontFamily: "'Playfair Display', serif" }}>Featured Events</h2>
+          <FeaturedEvents />
         </div>
       </section>
-
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2023 SparkVybzEnt. All rights reserved.</p>
+      <footer style={{ background: '#0a0d14', color: '#fff', padding: '18px 0', marginTop: 'auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <p>&copy; {new Date().getFullYear()} SparkVybzEnt. All rights reserved.</p>
         </div>
       </footer>
     </div>

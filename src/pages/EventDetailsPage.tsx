@@ -82,24 +82,24 @@ const EventDetailsPage: React.FC = () => {
 
   if (purchaseSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-          <div className="text-green-600 text-6xl mb-4">✓</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Purchase Successful!</h2>
-          <p className="text-gray-600 mb-6">Your tickets have been added to your account.</p>
-          <div className="space-y-3">
-            <Link
-              to="/account"
-              className="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md transition duration-300"
-            >
-              View My Tickets
-            </Link>
-            <Link
-              to="/events"
-              className="block w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 px-4 rounded-md transition duration-300"
-            >
-              Browse More Events
-            </Link>
+      <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#fff', fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap');
+          * { box-sizing: border-box; }
+          .gold { color: #f0c040; }
+          .green { color: #22c55e; }
+          .success-icon { font-size: 38px; color: #22c55e; margin-bottom: 12px; }
+          .success-title { font-size: 22px; font-family: 'Playfair Display', serif; font-weight: 700; color: #f0c040; margin-bottom: 8px; }
+          .success-btn { background:#f0c040; color:#0a0d14; border:none; border-radius:8px; padding:10px 22px; font-size:15px; font-weight:600; cursor:pointer; transition:opacity 0.2s,transform 0.15s; font-family:'DM Sans',sans-serif; margin-bottom: 8px; }
+          .success-btn:hover { opacity:0.85; transform:translateY(-1px); }
+        `}</style>
+        <div style={{ maxWidth: 420, margin: '0 auto', background: '#111827', borderRadius: 14, boxShadow: '0 6px 24px rgba(0,0,0,0.45)', padding: 32, textAlign: 'center' }}>
+          <div className="success-icon">✓</div>
+          <h2 className="success-title">Purchase Successful!</h2>
+          <p style={{ color: '#fff', marginBottom: 18 }}>Your tickets have been added to your account.</p>
+          <div>
+            <Link to="/account" className="success-btn" style={{ display: 'block', marginBottom: 8 }}>View My Tickets</Link>
+            <Link to="/events" className="ghost-btn" style={{ display: 'block' }}>Browse More Events</Link>
           </div>
         </div>
       </div>
@@ -107,62 +107,109 @@ const EventDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: '#0a0d14', color: '#fff', fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap');
+        * { box-sizing: border-box; }
+        .gold { color: #f0c040; }
+        .green { color: #22c55e; }
+        .page-title { font-size: 28px; font-family: 'Playfair Display', serif; font-weight: 700; color: #22c55e; margin-bottom: 8px; }
+        .event-banner { width: 100%; height: 260px; object-fit: cover; border-bottom: 1px solid #222; }
+        .event-title { font-size: 26px; font-family: 'Playfair Display', serif; font-weight: 700; color: #f0c040; margin-bottom: 8px; }
+        .event-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; color: #fff; margin-bottom: 8px; }
+        .event-category { background: #22c55e; color: #0a0d14; border-radius: 6px; padding: 2px 10px; font-size: 14px; font-weight: 600; }
+        .event-details { padding: 32px 0; }
+        .event-section-title { font-size: 18px; font-family: 'Playfair Display', serif; font-weight: 700; color: #22c55e; margin-bottom: 8px; }
+        .event-desc { color: #fff; margin-bottom: 18px; line-height: 1.6; }
+        .event-location { color: #22c55e; margin-bottom: 6px; }
+        .event-schedule { color: #fff; margin-bottom: 12px; }
+        .ticket-card { background: #111827; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.45); padding: 18px; margin-bottom: 18px; }
+        .ticket-type { font-size: 15px; color: #f0c040; font-weight: 600; }
+        .ticket-price { font-size: 15px; color: #22c55e; font-weight: 600; margin-left: 8px; }
+        .ticket-available { font-size: 13px; color: #fff; margin-bottom: 6px; }
+        .ticket-select { border-radius: 8px; border: 1px solid #222; padding: 6px 12px; font-size: 14px; background: #0a0d14; color: #fff; font-family: 'DM Sans', sans-serif; }
+        .buy-btn { background:#22c55e; color:#0a0d14; border:none; border-radius:8px; padding:10px 22px; font-size:15px; font-weight:600; cursor:pointer; transition:opacity 0.2s,transform 0.15s; font-family:'DM Sans',sans-serif; margin-top: 12px; width: 100%; }
+        .buy-btn:hover { opacity:0.85; transform:translateY(-1px); }
+      `}</style>
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <nav className="mb-4">
-            <Link to="/events" className="text-green-600 hover:text-green-800">&larr; Back to Events</Link>
+      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(10,13,20,0.96)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <nav>
+            <Link to="/events" className="ghost-btn">&larr; Back to Events</Link>
           </nav>
         </div>
       </header>
-
-      {/* Event Banner */}
-      <section className="relative">
-        <img src={event.imageUrl} alt={event.title} className="w-full h-64 md:h-96 object-cover" />
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end">
-          <div className="container mx-auto px-4 py-8 text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{event.title}</h1>
-            <div className="flex flex-wrap gap-4 text-lg">
-              <span>
-                {eventStart
-                  ? new Date(eventStart).toLocaleString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : 'Date TBD'}
-              </span>
-              {event.endTime && (
-                <span>
-                  Ends {new Date(event.endTime).toLocaleString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-              )}
-              <span>{event.venue ?? event.location}</span>
-              <span className="bg-yellow-500 text-black px-2 py-1 rounded">{event.category}</span>
-            </div>
-          </div>
+      {/* Event Banner - Larger image with overlayed name and category */}
+      <section className="event-banner-wrap" style={{ position: 'relative', marginBottom: 0 }}>
+        <img
+          src={event.imageUrl}
+          alt={event.title}
+          className="event-banner"
+          style={{
+            width: '100%',
+            height: '340px', // bigger image
+            objectFit: 'cover',
+            borderBottom: '1px solid #222',
+            borderRadius: '0 0 24px 24px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '340px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-start',
+            padding: '32px 36px',
+            background: 'linear-gradient(180deg, rgba(10,13,20,0.12) 0%, rgba(10,13,20,0.55) 80%)',
+            zIndex: 2,
+          }}
+        >
+          <h1
+            style={{
+              fontSize: '2.2rem',
+              fontFamily: 'Playfair Display, serif',
+              fontWeight: 700,
+              color: '#fff',
+              marginBottom: '8px',
+              textShadow: '0 2px 12px rgba(0,0,0,0.45)',
+            }}
+          >
+            {event.title}
+          </h1>
+          <span
+            style={{
+              background: '#22c55e',
+              color: '#0a0d14',
+              borderRadius: '8px',
+              padding: '6px 18px',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              boxShadow: '0 2px 8px rgba(34,197,94,0.15)',
+              marginBottom: '16px',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {event.category}
+          </span>
         </div>
       </section>
-
       {/* Event Details */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="event-details">
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32 }}>
             {/* Main Content */}
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800">About This Event</h2>
-              <p className="text-gray-700 leading-relaxed mb-8">{event.description}</p>
-
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Location & Schedule</h3>
-              <p className="text-gray-600 mb-2">{event.venue ?? event.location}</p>
-              <p className="text-gray-600">
+            <div>
+              <h2 className="event-section-title">About This Event</h2>
+              <p className="event-desc">{event.description}</p>
+              <h3 className="event-section-title">Location & Schedule</h3>
+              <p className="event-location">{event.venue ?? event.location}</p>
+              <p className="event-schedule">
                 {event.startTime && (
                   <>Starts: {new Date(event.startTime).toLocaleString()}</>
                 )}
@@ -171,23 +218,22 @@ const EventDetailsPage: React.FC = () => {
                 )}
               </p>
             </div>
-
             {/* Ticket Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Get Tickets</h3>
+            <div>
+              <h3 className="event-section-title">Get Tickets</h3>
               {ticketTypes.map(ticket => (
-                <div key={ticket.id} className="mb-4 pb-4 border-b border-gray-200 last:border-b-0">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium">{ticket.type}</span>
-                    <span className="text-green-600 font-semibold">KSH {(ticket.price ?? 0).toLocaleString()}</span>
+                <div key={ticket.id} className="ticket-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span className="ticket-type">{ticket.type}</span>
+                    <span className="ticket-price">KSH {(ticket.price ?? 0).toLocaleString()}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mb-2">{ticket.available ?? 0} tickets available</p>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm">Quantity:</label>
+                  <p className="ticket-available">{ticket.available ?? 0} tickets available</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <label style={{ fontSize: 13 }}>Quantity:</label>
                     <select
                       value={selectedTickets[ticket.id] || 0}
                       onChange={(e) => handleTicketChange(ticket.id, parseInt(e.target.value))}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                      className="ticket-select"
                     >
                       {[...Array(11).keys()].map(num => (
                         <option key={num} value={num}>{num}</option>
@@ -196,22 +242,21 @@ const EventDetailsPage: React.FC = () => {
                   </div>
                 </div>
               ))}
-
               {totalPrice > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold">Total:</span>
-                    <span className="text-xl font-bold text-green-600">KSH {(totalPrice ?? 0).toLocaleString()}</span>
+                <div style={{ marginTop: 18, borderTop: '1px solid #222', paddingTop: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600 }}>Total:</span>
+                    <span style={{ fontSize: 17, fontWeight: 700, color: '#22c55e' }}>KSH {(totalPrice ?? 0).toLocaleString()}</span>
                   </div>
                   <button
                     onClick={handlePurchase}
                     disabled={!user}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition duration-300"
+                    className="buy-btn"
                   >
                     {user ? 'Buy Tickets' : 'Sign In to Buy Tickets'}
                   </button>
                   {!user && (
-                    <p className="text-sm text-gray-500 mt-2">Please sign in to purchase tickets.</p>
+                    <p style={{ fontSize: 13, color: '#fff', marginTop: 6 }}>Please sign in to purchase tickets.</p>
                   )}
                 </div>
               )}

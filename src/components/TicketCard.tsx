@@ -28,7 +28,7 @@ const statusStyles: Record<string, string> = {
   REFUNDED: 'bg-red-100 text-red-800',
 };
 
-const TicketCard: React.FC<TicketCardProps> = ({ ticket, isPrintTarget, printMode, onRequestPrint }) => {
+const TicketCard: React.FC<TicketCardProps & { selected?: boolean }> = ({ ticket, isPrintTarget, printMode }) => {
   const ticketStatusClass = statusStyles[ticket.status] ?? 'bg-gray-100 text-gray-800';
   const eventTitle = ticket.eventName ?? 'Event';
   const venue = ticket.eventVenue ?? ticket.venue ?? ticket.eventName ?? 'Venue TBD';
@@ -36,15 +36,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, isPrintTarget, printMod
   const endTime = formatDateTime(ticket.eventEndTime ?? ticket.endTime);
   const purchaseDate = formatDateTime(ticket.purchaseDate);
 
-  const handlePrint = () => {
-    if (onRequestPrint) {
-      onRequestPrint(ticket.id);
-    }
-  };
 
   const printClass = printMode ? (isPrintTarget ? 'print:block' : 'print:hidden') : '';
 
-  const backgroundImageStyle = ticket.eventImageUrl
+  // Only show background image if not printing
+  const backgroundImageStyle = ticket.eventImageUrl && !printMode
     ? { backgroundImage: `url('${ticket.eventImageUrl}')` }
     : undefined;
 
@@ -58,7 +54,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, isPrintTarget, printMod
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="absolute inset-0 bg-black/40" />
+      {!printMode && <div className="absolute inset-0 bg-black/40" />}
       <div className="relative p-6 print:p-8">
         <div className="flex justify-between items-start mb-4">
           <div>
@@ -105,7 +101,6 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, isPrintTarget, printMod
             <p className="text-xs text-white/80">Purchased</p>
             <p className="text-sm font-medium text-white">{purchaseDate}</p>
           </div>
-
           <div className="flex items-center gap-3">
             {ticket.qrCode ? (
               <img
@@ -118,13 +113,6 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, isPrintTarget, printMod
                 No QR available
               </div>
             )}
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              Download / Print
-            </button>
           </div>
         </div>
       </div>

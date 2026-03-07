@@ -104,7 +104,20 @@ const EventManagement: React.FC = () => {
     e.preventDefault();
     setSubmitLoading(true);
 
+    // Prepare payload with all required fields and ISO date/time formatting
     let payload = { ...formData };
+    // Combine date and start/end time into ISO strings
+    if (formData.date) {
+      // If startTime/endTime are present, combine with date
+      const dateISO = new Date(formData.date).toISOString();
+      payload.date = dateISO;
+      if (formData.startTime) {
+        payload.startTime = new Date(`${formData.date}T${formData.startTime}`).toISOString();
+      }
+      if (formData.endTime) {
+        payload.endTime = new Date(`${formData.date}T${formData.endTime}`).toISOString();
+      }
+    }
 
     if (imageFile) {
       const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -234,32 +247,47 @@ const EventManagement: React.FC = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description ?? ''}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                  placeholder="Describe the event..."
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input
                   type="date"
                   name="date"
                   value={formData.date}
                   onChange={handleInputChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                 <input
-                  type="datetime-local"
+                  type="time"
                   name="startTime"
                   value={formData.startTime ?? ''}
                   onChange={handleInputChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End time</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
                 <input
-                  type="datetime-local"
+                  type="time"
                   name="endTime"
                   value={formData.endTime ?? ''}
                   onChange={handleInputChange}
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
