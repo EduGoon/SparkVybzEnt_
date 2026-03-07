@@ -56,10 +56,9 @@ const AdminDashboard: React.FC = () => {
   const currentUser = user || demoAdmin;
 
   const navItems = [
-    { path: '/admin', label: 'Dashboard', icon: '📊' },
+    { path: '/admin/analytics', label: 'Analytics', icon: '📈' },
     { path: '/admin/events', label: 'Events', icon: '🎪' },
     { path: '/admin/sponsors', label: 'Sponsors', icon: '🤝' },
-    { path: '/admin/analytics', label: 'Analytics', icon: '📈' },
   ];
 
   return (
@@ -70,6 +69,7 @@ const AdminDashboard: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800">SparkVybzEnt Admin</h1>
           <div className="flex items-center space-x-4">
             <span className="text-gray-600">Welcome, {currentUser.firstName} {currentUser.lastName} {user && `(${user.role})`}</span>
+            <span className="text-gray-600">Events: {metrics.totalEvents}</span>
             <Link to="/" className="text-green-600 hover:text-green-800">← Public Site</Link>
             {user && (
               <button
@@ -111,9 +111,9 @@ const AdminDashboard: React.FC = () => {
         <main className="flex-1 p-8">
           <Routes>
             <Route path="/" element={<DashboardHome metrics={metrics} />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/events" element={<EventManagement />} />
             <Route path="/sponsors" element={<SponsorManagement />} />
-            <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </main>
       </div>

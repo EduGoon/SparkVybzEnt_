@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as adminService from '../../services/adminService';
 import { AdminAnalyticsResponse } from '../../utilities/types';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const formatNumber = (value: number) => value.toLocaleString();
 
@@ -10,6 +11,8 @@ const Analytics: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'revenue' | 'tickets'>('revenue');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [revenueVisible, setRevenueVisible] = useState(false);
+  const [avgPriceVisible, setAvgPriceVisible] = useState(false);
 
   const loadAnalytics = async (opts?: { since?: string }) => {
     try {
@@ -62,16 +65,6 @@ const Analytics: React.FC = () => {
     return Math.max(...monthlyTickets.map((m) => m.ticketsSold ?? 0), 1);
   }, [monthlyTickets]);
 
-  const maxTopRevenue = useMemo(() => {
-    if (!topEvents.length) return 1;
-    return Math.max(...topEvents.map((t) => t.revenue ?? 0), 1);
-  }, [topEvents]);
-
-  const maxTopTickets = useMemo(() => {
-    if (!topEvents.length) return 1;
-    return Math.max(...topEvents.map((t) => t.ticketsSold ?? 0), 1);
-  }, [topEvents]);
-
   const sortedTopEvents = useMemo(() => {
     const copy = [...topEvents];
     return copy.sort((a, b) => {
@@ -83,11 +76,9 @@ const Analytics: React.FC = () => {
   }, [sortBy, topEvents]);
 
   const onRefresh = () => {
-    if (!analytics?.lastUpdated) {
-      loadAnalytics();
-      return;
-    }
-    loadAnalytics({ since: analytics.lastUpdated });
+    setLoading(true);
+    setIsRefreshing(true);
+    loadAnalytics();
   };
 
   if (error) {
@@ -161,11 +152,29 @@ const Analytics: React.FC = () => {
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Revenue</h3>
-          <p className="text-3xl font-bold text-green-600">KSH {formatNumber(totals.totalRevenue)}</p>
+          <div className="relative">
+            <p className={`text-3xl font-bold text-green-600 ${!revenueVisible ? 'blur-sm' : ''}`}>KSH {formatNumber(totals.totalRevenue)}</p>
+            <button
+              className="absolute top-0 right-0 p-2 bg-transparent"
+              onClick={() => setRevenueVisible(v => !v)}
+              aria-label={revenueVisible ? 'Hide' : 'Show'}
+            >
+              {revenueVisible ? <EyeSlashIcon className="w-6 h-6 text-green-600" /> : <EyeIcon className="w-6 h-6 text-green-600" />}
+            </button>
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Avg Ticket Price</h3>
-          <p className="text-3xl font-bold text-yellow-600">KSH {formatNumber(avgTicketPrice)}</p>
+          <div className="relative">
+            <p className={`text-3xl font-bold text-yellow-600 ${!avgPriceVisible ? 'blur-sm' : ''}`}>KSH {formatNumber(avgTicketPrice)}</p>
+            <button
+              className="absolute top-0 right-0 p-2 bg-transparent"
+              onClick={() => setAvgPriceVisible(v => !v)}
+              aria-label={avgPriceVisible ? 'Hide' : 'Show'}
+            >
+              {avgPriceVisible ? <EyeSlashIcon className="w-6 h-6 text-yellow-600" /> : <EyeIcon className="w-6 h-6 text-yellow-600" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -226,14 +235,14 @@ const Analytics: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tickets Sold</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance(Ticket-Based)</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedTopEvents.map((event) => {
-                const percent = sortBy === 'tickets'
-                  ? Math.round(((event.ticketsSold ?? 0) / maxTopTickets) * 100)
-                  : Math.round(((event.revenue ?? 0) / maxTopRevenue) * 100);
+                const totalTickets = event.totalTicketQuantity ?? 0;
+                const sold = event.ticketsSold ?? 0;
+                const percent = totalTickets > 0 ? Math.round((sold / totalTickets) * 100) : 0;
 
                 return (
                   <tr key={event.eventId}>
@@ -241,7 +250,7 @@ const Analytics: React.FC = () => {
                       {event.title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatNumber(event.ticketsSold ?? 0)}
+                      {formatNumber(sold)} / {formatNumber(totalTickets)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       KSH {formatNumber(event.revenue ?? 0)}

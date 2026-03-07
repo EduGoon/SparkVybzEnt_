@@ -35,6 +35,7 @@ export interface AdminAnalyticsPerEventMonthly {
   status: string;
   monthly?: Record<string, number>;
   monthlySeries?: AdminAnalyticsMonthlyTicketsSoldItem[];
+  totalTicketQuantity?: number;
 }
 
 export interface AdminAnalyticsTopEvent {
@@ -46,6 +47,7 @@ export interface AdminAnalyticsTopEvent {
   percentageOfTotalRevenue?: number;
   percentageOfTotalTickets?: number;
   monthly?: Record<string, number>;
+  totalTicketQuantity?: number;
 }
 
 export interface AdminAnalyticsResponse {
@@ -77,6 +79,8 @@ export interface Event {
   updatedAt: string;
   ticketTypes: TicketType[];
   analytics?: EventAnalytics[];
+  imageBase64?: string;
+  imageName?: string;
 }
 
 export interface Ticket {
@@ -120,6 +124,8 @@ export interface Sponsor {
   website: string;
   tier: 'GOLD' | 'SILVER' | 'BRONZE';
   contactEmail: string;
+  logoBase64?: string;
+  logoName?: string;
 }
 
 export interface Analytics {

@@ -14,6 +14,9 @@ const SponsorManagement: React.FC = () => {
     tier: 'BRONZE',
     contactEmail: ''
   });
+  const [logoPreview, setLogoPreview] = useState<string>('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  // const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -32,15 +35,60 @@ const SponsorManagement: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        alert('File size cannot exceed 4MB.');
+        return;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      setLogoFile(file);
+      setLogoPreview(previewUrl);
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    let payload: Partial<Sponsor> = { ...formData };
+
+    if (logoFile) {
+      const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+
+      try {
+        const logoBase64 = await toBase64(logoFile);
+        payload = {
+          ...payload,
+          logoBase64,
+          logoName: logoFile.name,
+        };
+        // Ensure logoUrl is not sent when uploading a file
+        delete payload.logoUrl; 
+
+      } catch (error) {
+        console.error('Failed to convert file to Base64', error);
+        alert('Error processing image file.');
+        return;
+      }
+    }
+
     try {
       if (editingSponsor) {
-        const updated = await sponsorService.updateSponsor(editingSponsor.id, formData);
-        setSponsors(prev => prev.map(s => (s.id === updated.id ? updated : s)));
+        const updated = await sponsorService.updateSponsor(editingSponsor.id, payload);
+        setSponsors(prev => prev.map(s => (s.id === editingSponsor.id ? updated : s)));
       } else {
-        const created = await sponsorService.createSponsor(formData);
+        const created = await sponsorService.createSponsor(payload);
         setSponsors(prev => [...prev, created]);
       }
       resetForm();
@@ -60,12 +108,16 @@ const SponsorManagement: React.FC = () => {
     });
     setEditingSponsor(null);
     setShowForm(false);
+    setLogoPreview('');
+    setLogoFile(null);
   };
 
   const editSponsor = (sponsor: Sponsor) => {
     setFormData(sponsor);
     setEditingSponsor(sponsor);
     setShowForm(true);
+    setLogoPreview(sponsor.logoUrl || '');
+    setLogoFile(null);
   };
 
   const deleteSponsor = async (id: string | number) => {
@@ -83,11 +135,12 @@ const SponsorManagement: React.FC = () => {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800">Sponsor Management</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+            disabled={false} // disabled state removed
         >
-          Add New Sponsor
+            {'Add New Sponsor'}
         </button>
       </div>
 
@@ -142,13 +195,28 @@ const SponsorManagement: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Logo</label>
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo Preview" className="w-32 h-32 object-contain mb-2" />
+                ) : (
+                  formData.logoUrl && <img src={formData.logoUrl} alt="Current Logo" className="w-32 h-32 object-contain mb-2" />
+                )}
+                <input
+                  type="file"
+                  name="logoFile"
+                  onChange={handleFileChange}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Or Logo URL</label>
                 <input
                   type="url"
                   name="logoUrl"
-                  value={formData.logoUrl}
+                  value={formData.logoUrl || ''}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={!!logoFile}
                 />
               </div>
             </div>

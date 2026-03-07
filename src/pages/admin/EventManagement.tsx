@@ -5,7 +5,7 @@ import * as adminService from '../../services/adminService';
 import { useAuth } from '../../utilities/AuthContext';
 
 interface LocalEventForm extends Omit<Partial<Event>, 'ticketTypes'> {
-  ticketTypes?: Array<Partial<TicketType>>;
+  ticketTypes?: Array<TicketType>;
 }
 
 const EventManagement: React.FC = () => {
@@ -22,9 +22,12 @@ const EventManagement: React.FC = () => {
     category: '',
     description: '',
     status: 'DRAFT',
-    ticketTypes: [{ name: '', price: 0, quantity: 0, sold: 0 }]
+    ticketTypes: [{ id: 'new-0', name: '', price: 0, quantity: 0, sold: 0 }]
   });
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const { refreshSession } = useAuth();
   const hasLoadedRef = React.useRef(false);
@@ -60,16 +63,33 @@ const EventManagement: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        alert('File size cannot exceed 4MB.');
+        return;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      setImageFile(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
   const handleTicketChange = (index: number, field: string, value: string | number) => {
     const updatedTickets = [...(formData.ticketTypes || [])];
-    updatedTickets[index] = { ...updatedTickets[index], [field]: value };
+    (updatedTickets[index] as any)[field] = value;
     setFormData(prev => ({ ...prev, ticketTypes: updatedTickets }));
   };
 
   const addTicketType = () => {
     setFormData(prev => ({
       ...prev,
-      ticketTypes: [...(prev.ticketTypes || []), { name: '', price: 0, quantity: 0, sold: 0 }]
+      ticketTypes: [...(prev.ticketTypes || []), { id: `new-${(prev.ticketTypes || []).length}`, name: '', price: 0, quantity: 0, sold: 0 }]
     }));
   };
 
@@ -82,18 +102,49 @@ const EventManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitLoading(true);
+
+    let payload = { ...formData };
+
+    if (imageFile) {
+      const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+
+      try {
+        const imageBase64 = await toBase64(imageFile);
+        payload = {
+          ...payload,
+          imageBase64,
+          imageName: imageFile.name,
+        };
+        // Ensure imageUrl is not sent when uploading a file
+        delete payload.imageUrl;
+
+      } catch (error) {
+        console.error('Failed to convert file to Base64', error);
+        alert('Error processing image file.');
+        return;
+      }
+    }
+
     try {
       if (editingEvent) {
-        const updated = await eventService.updateEvent(editingEvent.id, formData as Partial<Event>);
-        setEvents(prev => prev.map(ev => ev.id === updated.id ? updated : ev));
+        const updated = await eventService.updateEvent(editingEvent.id, payload);
+        setEvents(prev => prev.map(ev => (ev.id === editingEvent.id ? updated : ev)));
       } else {
-        const created = await eventService.createEvent(formData as Partial<Event>);
+        const created = await eventService.createEvent(payload);
         setEvents(prev => [...prev, created]);
       }
       resetForm();
     } catch (err) {
       console.error('Failed to save event', err);
       alert('Error saving event');
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -108,16 +159,20 @@ const EventManagement: React.FC = () => {
       category: '',
       description: '',
       status: 'DRAFT',
-      ticketTypes: [{ name: '', price: 0, quantity: 0, sold: 0 }]
+      ticketTypes: [{ id: 'new-0', name: '', price: 0, quantity: 0, sold: 0 }]
     });
     setEditingEvent(null);
     setShowForm(false);
+    setImagePreview('');
+    setImageFile(null);
   };
 
   const editEvent = (event: Event) => {
     setFormData(event);
     setEditingEvent(event);
     setShowForm(true);
+    setImagePreview(event.imageUrl || '');
+    setImageFile(null);
   };
 
   const deleteEvent = async (id: string | number) => {
@@ -146,7 +201,11 @@ const EventManagement: React.FC = () => {
         <button
           onClick={() => setShowForm(true)}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+          disabled={submitLoading}
         >
+          {submitLoading ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent inline-block mr-2" />
+          ) : null}
           Create New Event
         </button>
       </div>
@@ -244,15 +303,32 @@ const EventManagement: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Image</label>
+              {imagePreview ? (
+                <img src={imagePreview} alt="Event Preview" className="w-full h-48 object-contain mb-2" />
+              ) : (
+                formData.imageUrl && <img src={formData.imageUrl} alt="Current Event Image" className="w-full h-48 object-contain mb-2" />
+              )}
+              <input
+                type="file"
+                name="imageFile"
+                onChange={handleFileChange}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Or Image URL</label>
+              <input
+                type="url"
+                name="imageUrl"
+                value={formData.imageUrl || ''}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={!!imageFile}
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select
@@ -282,15 +358,15 @@ const EventManagement: React.FC = () => {
                   <input
                     type="number"
                     placeholder="Price"
-                    value={ticket.price}
-                    onChange={(e) => handleTicketChange(index, 'price', parseInt(e.target.value))}
+                    value={ticket.price || ''}
+                    onChange={(e) => handleTicketChange(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value, 10))}
                     className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <input
                     type="number"
                     placeholder="Quantity"
-                    value={ticket.quantity}
-                    onChange={(e) => handleTicketChange(index, 'quantity', parseInt(e.target.value))}
+                    value={ticket.quantity || ''}
+                    onChange={(e) => handleTicketChange(index, 'quantity', e.target.value === '' ? 0 : parseInt(e.target.value, 10))}
                     className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <button
